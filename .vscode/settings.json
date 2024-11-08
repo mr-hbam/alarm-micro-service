@@ -1,0 +1,25 @@
+{
+    "typescript.tsdk": "./node_modules/typescript/lib",
+    "files.insertFinalNewline": true,
+    "git.autofetch": true,
+    "editor.wordWrap": "on",
+    "eslint.workingDirectories": [{ "mode": "auto" }],
+    "eslint.format.enable": true,
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[json]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[yaml]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "[markdown]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode",
+      "editor.formatOnSave": true
+    },
+    "typescript.preferences.importModuleSpecifier": "relative"
+  }
