@@ -1,11 +1,11 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PassportStrategy } from '@nestjs/passport';
 import {
   ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
 import * as express from 'express';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 
 @Injectable()
 export class NamespaceJwt2FaStrategy extends PassportStrategy(
@@ -35,9 +35,9 @@ export class NamespaceJwt2FaStrategy extends PassportStrategy(
   }
 
   async validate(payload: any) {
-    console.log(
-      `[NamespaceJwt2FaStrategy] validate: payload=${JSON.stringify(payload)}`,
-    );
+    // console.log(
+    //   `[NamespaceJwt2FaStrategy] validate: payload=${JSON.stringify(payload)}`,
+    // );
     if (payload['2faEnabled'] && !payload['2faAuthenticated']) {
       throw new UnauthorizedException();
     }

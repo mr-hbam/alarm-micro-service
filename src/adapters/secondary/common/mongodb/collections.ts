@@ -16,4 +16,5 @@ export enum MongoCollections {
   'ALARM' = 'alarm',
   'CLAIM' = 'claim',
   'TYPE' = 'type',
+  'DETECTION' = 'detection',
 }
