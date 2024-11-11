@@ -1,14 +1,14 @@
-import {
-  IsEnum,
-  IsString,
-  IsOptional,
-  IsObject,
-  IsArray,
-  IsNotEmpty,
-  ValidateNested,
-  IsBoolean,
-} from 'class-validator';
 import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { AlarmTypeValue } from '../../../../../core/alarm/type/type.enum';
 
 export class TimeIntervalDto {
@@ -112,6 +112,11 @@ export class CreateAlarmRequestDto {
   @ValidateNested()
   @Type(() => NotificationsDto)
   notifications!: NotificationsDto;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  unitIds: string[];
 
   @ValidateNested()
   @Type(() => ScheduleDto)

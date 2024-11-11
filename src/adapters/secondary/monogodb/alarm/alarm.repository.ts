@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { Collection } from 'mongodb';
+import { Collection, ObjectId } from 'mongodb';
 import { MongoDbClientProvider } from '../../../../configurations/mongodb/mongodb-client';
+import { AlarmEntity } from '../../../../core/alarm/entities/alarm.entity';
 import { AlarmRepository } from '../../../../core/alarm/repositories/alarm.repository';
-import { MongoFilterNamespaceOptionsType } from '../../common/type';
-import { MongoCollections } from '../../common/mongodb/collections';
 import {
   CreateAlarmRequestDto,
   CreateAlarmResponseDto,
 } from '../../../primaries/nest/alarm/dto/alarm.dto';
-import { AlarmEntity } from '../../../../core/alarm/entities/alarm.entity';
+import { MongoCollections } from '../../common/mongodb/collections';
+import { MongoFilterNamespaceOptionsType } from '../../common/type';
 
 @Injectable()
 export class MongoAlarmRepository implements AlarmRepository {
@@ -57,7 +57,7 @@ export class MongoAlarmRepository implements AlarmRepository {
   }
 
   async createAlarm(
-    payload: CreateAlarmRequestDto,
+    { unitIds, ...payload }: CreateAlarmRequestDto,
     options: MongoFilterNamespaceOptionsType,
   ): Promise<CreateAlarmResponseDto> {
     const collection = await this.alarmModel;
@@ -70,6 +70,10 @@ export class MongoAlarmRepository implements AlarmRepository {
       updatedAt: new Date(),
     };
 
+    if (unitIds) {
+      alarm['unit'] = unitIds.map((unitId) => ({ key: new ObjectId(unitId) }));
+    }
+
     const result = await collection.insertOne(alarm);
 
     return {
@@ -80,7 +84,7 @@ export class MongoAlarmRepository implements AlarmRepository {
 
   async updateAlarm(
     query: any,
-    payload: Partial<AlarmEntity>,
+    { unit, ...payload }: Partial<AlarmEntity>,
     options: MongoFilterNamespaceOptionsType,
   ): Promise<{ matchedCount: number; modifiedCount: number }> {
     const collection = await this.alarmModel;
@@ -89,6 +93,7 @@ export class MongoAlarmRepository implements AlarmRepository {
       {
         $set: {
           ...payload,
+          unit: unit.map((unitId) => ({ key: new ObjectId(unitId) })),
           updatedAt: new Date(),
         },
       },

@@ -22,4 +22,8 @@ export class UpdateAlarmRequestDto {
 
   @IsOptional()
   schedule?: Record<string, any>;
+
+  @IsOptional()
+  @IsString({ each: true })
+  unit: string[];
 }

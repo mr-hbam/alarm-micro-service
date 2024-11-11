@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AlarmRepository } from '../repositories/alarm.repository';
 import {
   FetchAlarmsRequestDto,
   FetchAlarmsResponseDto,
 } from '../../../adapters/primaries/nest/alarm/dto/fetch-alarms.dto';
 import { AlarmEntity } from '../entities/alarm.entity';
+import { AlarmRepository } from '../repositories/alarm.repository';
 
 @Injectable()
 export class FetchAlarmsUseCase {
@@ -36,6 +36,7 @@ export class FetchAlarmsUseCase {
       schedule: alarm.schedule,
       createdAt: alarm.createdAt,
       updatedAt: alarm.updatedAt,
+      unit: alarm.unit,
     }));
 
     return {

@@ -24,6 +24,9 @@ export class AlarmEntity {
   notifications: Record<string, any>;
 
   @AutoMap()
+  unit: string[];
+
+  @AutoMap()
   schedule: Record<string, any>;
 
   @AutoMap()

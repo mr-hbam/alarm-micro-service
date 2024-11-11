@@ -96,6 +96,7 @@ const alarmMock: AlarmEntity[] = [
     type: AlarmTypeValue.SPEEDING,
     name: 'Speeding (by hardware speed)',
     description: '',
+    unit: ['123'],
     settings: {
       speed_limit: '51',
       bindzone: false,
