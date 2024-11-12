@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { MongoClient } from 'mongodb';
-import { getMongoDbConnectionString } from './mongodb.config';
 import { MongoCollections } from '../../adapters/secondary/common/mongodb/collections';
 import INDEXES from '../mongodb/indexes';
+import { getMongoDbConnectionString } from './mongodb.config';
 
 @Injectable()
 export class MongoDbClientProvider {
@@ -16,6 +16,7 @@ export class MongoDbClientProvider {
       MongoCollections.HISTORY,
       MongoCollections.STOP,
       MongoCollections.OPERATOR_ASSIGNMENT,
+      MongoCollections.ALARM,
     ];
   }
 

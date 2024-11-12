@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ClientSession, Collection, ObjectId } from 'mongodb';
+import { mapper } from '../../../../common/mappings/mapper';
 import { MongoDbClientProvider } from '../../../../configurations/mongodb/mongodb-client';
 import { AlarmEntity } from '../../../../core/alarm/entities/alarm.entity';
-import { AlarmTypeValue } from '../../../../core/alarm/type/type.enum';
 import { DetectionRepository } from '../../../../core/detection/repositories/detection.repository';
 import { CreateDetectionPayload } from '../../../../core/detection/repositories/detection.type';
 import { MongoCollections } from '../../common/mongodb/collections';
+import { initAlarmMapper } from './alarm-mongo.mapper';
+import { FindAlarmItemResponse, MongoAlarmItem } from './type';
 
 @Injectable()
 export class MongoDetectionRepository implements DetectionRepository {
@@ -17,16 +19,29 @@ export class MongoDetectionRepository implements DetectionRepository {
     this.detectionModel = mongodbClientProvider.getCollection(
       MongoCollections.DETECTION,
     );
-    this.mongodbClientProvider = mongodbClientProvider;
     this.alarmModel = mongodbClientProvider.getCollection(
       MongoCollections.ALARM,
     );
+    this.mongodbClientProvider = mongodbClientProvider;
+    initAlarmMapper();
   }
   async deviceAlarms(unit: string): Promise<AlarmEntity[]> {
     //TODO implement this method
-    // const collection = await this.alarmModel;
-    // return collection.find<AlarmEntity>({ unit: unit }).toArray();
-    return alarmMock;
+    const collection = await this.alarmModel;
+    const unitObjectId = new ObjectId(unit);
+
+    const res = await collection
+      .find<MongoAlarmItem>({
+        unit: {
+          $elemMatch: {
+            key: unitObjectId,
+          },
+        },
+      })
+      .toArray();
+
+    const mappingRes = await this.mapMongoAlarmItemsToAlarmEntities(res);
+    return mappingRes;
   }
 
   async createDetection(payload: CreateDetectionPayload): Promise<void> {
@@ -61,6 +76,7 @@ export class MongoDetectionRepository implements DetectionRepository {
       await session.abortTransaction();
       return;
     } catch (err) {
+      await session.abortTransaction();
       throw err;
     } finally {
       await session.endSession();
@@ -68,6 +84,20 @@ export class MongoDetectionRepository implements DetectionRepository {
     }
   }
   //=================
+
+  private async mapMongoAlarmItemsToAlarmEntities(
+    mongoAlarmItems: MongoAlarmItem[],
+  ): Promise<AlarmEntity[]> {
+    return mongoAlarmItems.map((item) => {
+      const alarmEntity = mapper.map<MongoAlarmItem, FindAlarmItemResponse>(
+        item,
+        MongoAlarmItem,
+        FindAlarmItemResponse,
+      );
+
+      return alarmEntity;
+    });
+  }
   private async addDetectionToAlarm(
     insertedId: ObjectId,
     alarmKey: ObjectId,
@@ -89,41 +119,3 @@ export class MongoDetectionRepository implements DetectionRepository {
     );
   }
 }
-
-const alarmMock: AlarmEntity[] = [
-  {
-    key: '671fab5ebde0aa4f7b41c96c',
-    type: AlarmTypeValue.SPEEDING,
-    name: 'Speeding (by hardware speed)',
-    description: '',
-    unit: ['123'],
-    settings: {
-      speed_limit: '51',
-      bindzone: false,
-    },
-    notifications: {
-      text: {
-        notification_text: 'notification text 1',
-      },
-      emergency: false,
-      push: false,
-      recipients: {
-        email: [],
-        sms: [],
-      },
-    },
-    schedule: {
-      template: 'everyday',
-      intervals: [
-        {
-          day: 'We',
-          start: '05:00:00',
-          end: '05:30:00',
-        },
-      ],
-    },
-    namespace: '123',
-    createdAt: new Date('2024-10-28T16:07:37.050Z'),
-    updatedAt: new Date('2024-10-28T16:07:37.050Z'),
-  },
-];

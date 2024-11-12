@@ -15,6 +15,7 @@ export class VerifyAlarmUseCase {
     unit,
   }: VerifyAlarmRequest): Promise<boolean> {
     const alarmDevices = await this.detectionRepository.deviceAlarms(device);
+
     if (!alarmDevices || alarmDevices.length === 0) {
       return false;
     }

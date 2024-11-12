@@ -1,6 +1,16 @@
 import { AutoMap } from '@automapper/classes';
 import { ObjectId } from 'mongodb';
 import { AlarmTypeEntity } from '../../../../core/alarm/entities/type.entity';
+export class MongoCreateAtUpdateAt {
+  @AutoMap()
+  updatedAt: Date;
+
+  @AutoMap()
+  updatedBy?: { _id: ObjectId; firstName: string; lastName: string };
+
+  @AutoMap()
+  createdBy?: { _id: ObjectId; firstName: string; lastName: string };
+}
 
 export interface MongoDocument {
   _id: ObjectId;

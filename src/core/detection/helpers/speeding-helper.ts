@@ -20,7 +20,7 @@ export const isSpeeding = (data: DeviceData, alarm: AlarmEntity): boolean => {
     const scheduale = alarm.schedule as ISchedule;
     //TODO - Implement the logic to send notifications
     // const notifications = alarm.notifications;
-    const detectionDate = data.timestamp; //2024-06-20T23:44:30.000Z
+    const detectionDate = data.timestamp;
     const isDetectionInSchedule = isInSchedule(scheduale, detectionDate);
     if (!isDetectionInSchedule) {
       return false;
@@ -31,9 +31,10 @@ export const isSpeeding = (data: DeviceData, alarm: AlarmEntity): boolean => {
 };
 
 const isInSchedule = (schedule: ISchedule, detectionDate: string): boolean => {
+  //start of the day is 00:00:00
   const date = new Date(detectionDate);
   const dayName = date
-    .toLocaleDateString('en-US', { weekday: 'short' })
+    .toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })
     .slice(0, 2);
   if (schedule.template === 'everyday') {
     return true;
@@ -44,7 +45,9 @@ const isInSchedule = (schedule: ISchedule, detectionDate: string): boolean => {
   }
   const detectionTime = date.toLocaleTimeString('en-US', {
     hour12: false,
+    timeZone: 'UTC',
   });
+
   const interval = schedule.intervals.filter(
     (interval) => interval.day === dayName,
   );
