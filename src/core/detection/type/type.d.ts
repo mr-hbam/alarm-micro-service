@@ -32,3 +32,20 @@ export interface VerifyAlarmRequest {
   device: string;
   data: DeviceData;
 }
+
+export interface ISchedule {
+  template: 'everyday' | 'weekdays' | 'weekends' | 'custom';
+  intervals: {
+    day: string;
+    start: string;
+    end: string;
+  }[];
+}
+
+export interface ISpeedingSetting {
+  speed_limit: number;
+  bindzone: boolean;
+  parking_state_checked?: boolean;
+  geofences?: string[];
+  parking_state?: string;
+}

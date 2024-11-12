@@ -1,36 +1,9 @@
-import { AlarmEntity } from '../../alarm/entities/alarm.entity';
-import { DeviceData } from '../type/type';
+import { ISchedule } from '../type/type';
 
-export const isSpeeding = (data: DeviceData, alarm: AlarmEntity): boolean => {
-  const isMoving = data.movement_status;
-  if (!isMoving) {
-    return false;
-  }
-
-  const speed = data.position_speed;
-  const speedLimit: number = alarm.settings['speed_limit'];
-
-  if (!speedLimit) {
-    return false;
-  }
-
-  //TODO - Implement the logic to implement the geofence bindzone
-  const isSpeeding = speed > speedLimit;
-  if (isSpeeding) {
-    const scheduale = alarm.schedule as ISchedule;
-    //TODO - Implement the logic to send notifications
-    // const notifications = alarm.notifications;
-    const detectionDate = data.timestamp;
-    const isDetectionInSchedule = isInSchedule(scheduale, detectionDate);
-    if (!isDetectionInSchedule) {
-      return false;
-    }
-    return true;
-  }
-  return false;
-};
-
-const isInSchedule = (schedule: ISchedule, detectionDate: string): boolean => {
+export const isInSchedule = (
+  schedule: ISchedule,
+  detectionDate: string,
+): boolean => {
   //start of the day is 00:00:00
   const date = new Date(detectionDate);
   const dayName = date
@@ -77,15 +50,7 @@ const isTimeInInterval = (
   );
 };
 
-const timeToMinutes = (time: string): number => {
+export const timeToMinutes = (time: string): number => {
   const [hours, minutes] = time.split(':').map(Number);
   return hours * 60 + minutes;
 };
-interface ISchedule {
-  template: 'everyday' | 'weekdays' | 'weekends' | 'custom';
-  intervals: {
-    day: string;
-    start: string;
-    end: string;
-  }[];
-}
