@@ -4,7 +4,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { TerminusModule } from '@nestjs/terminus';
 import { dependencies } from '../../../configurations/dependencies';
 import alarmDependencies from '../../../configurations/dependencies/alarm';
-import detectionDependencies from '../../../configurations/dependencies/detection';
 import { MongoDbClientProvider } from '../../../configurations/mongodb/mongodb-client';
 import { AlarmTypesController } from './alarm/alarm.controller';
 import { AlarmValidatorService } from './alarm/service/alarm-validator.service';
@@ -16,17 +15,11 @@ import { Jwt2FaStrategy } from './auth/strategies/jwt-2fa.strategy';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { NamespaceJwt2FaStrategy } from './auth/strategies/namespace-jwt-2fa.strategy';
 import { CaslModule } from './casl/casl.module';
-import { DetectionController } from './detection/detections.controller';
 import { HealthController } from './health/health.controller';
 import { MongoHealthIndicator } from './health/mongodb.health';
 
 @Module({
-  controllers: [
-    AppController,
-    AlarmTypesController,
-    HealthController,
-    DetectionController,
-  ],
+  controllers: [AppController, AlarmTypesController, HealthController],
   imports: [
     JwtModule.register({
       secret: 'secretKey',
@@ -42,7 +35,6 @@ import { MongoHealthIndicator } from './health/mongodb.health';
     MongoDbClientProvider,
     ...dependencies,
     ...alarmDependencies,
-    ...detectionDependencies,
     AlarmValidatorService,
     JwtStrategy,
     Jwt2FaStrategy,
