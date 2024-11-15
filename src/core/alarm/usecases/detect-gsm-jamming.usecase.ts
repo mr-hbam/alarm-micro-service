@@ -3,28 +3,22 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class DetectGsmJammingUsecase {
   async execute(payload: Payload): Promise<boolean> {
-    const { signalStrength, signalQuality } = payload;
+    if (payload.io249) await this.jamingStartingTime(payload);
+    else await this.jamingEndingTime(payload);
+    return payload.io249;
+  }
 
-    const signalStrengthThreshold = -110;
-    const signalQualityThreshold = 10;
+  //implementation of jamingStartingTime and jamingEndingTime
+  private async jamingStartingTime(payload: Payload) {
+    return payload.io249;
+  }
 
-    if (
-      signalStrength < signalStrengthThreshold &&
-      signalQuality < signalQualityThreshold
-    ) {
-      return true;
-    }
-
-    return false;
+  private async jamingEndingTime(payload: Payload) {
+    return payload.io249;
   }
 }
 
 interface Payload {
-  signalStrength: number;
-  signalQuality: number;
   timestamp: Date;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
+  io249: boolean;
 }
