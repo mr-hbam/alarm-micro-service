@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Collection, ObjectId } from 'mongodb';
+import { ClientSession, Collection, ObjectId } from 'mongodb';
 import { MongoDbClientProvider } from '../../../../configurations/mongodb/mongodb-client';
 import { AlarmEntity } from '../../../../core/alarm/entities/alarm.entity';
 import { AlarmRepository } from '../../../../core/alarm/repositories/alarm.repository';
@@ -13,12 +13,98 @@ import { MongoFilterNamespaceOptionsType } from '../../common/type';
 @Injectable()
 export class MongoAlarmRepository implements AlarmRepository {
   private alarmModel: Promise<Collection>;
-
+  private detectionModel: Promise<Collection>;
+  private mongodbClientProvider: MongoDbClientProvider;
   constructor(mongodbClientProvider: MongoDbClientProvider) {
     this.alarmModel = mongodbClientProvider.getCollection(
       MongoCollections.ALARM,
     );
+    this.detectionModel = mongodbClientProvider.getCollection(
+      MongoCollections.DETECTION,
+    );
+    this.mongodbClientProvider = mongodbClientProvider;
   }
+
+  //TODO Delete this after the test
+  async getAlarmsForDevice(deviceKey: string): Promise<AlarmEntity[]> {
+    const collection = await this.alarmModel;
+    const unitObjectId = new ObjectId(deviceKey);
+
+    const res = await collection
+      .find<AlarmEntity>({
+        unit: {
+          $elemMatch: {
+            key: unitObjectId,
+          },
+        },
+      })
+      .toArray();
+
+    return res;
+  }
+
+  async createDetection(payload: any): Promise<void> {
+    const collection = await this.detectionModel;
+    const alarmId = new ObjectId(payload.alarmId);
+    const session = await this.mongodbClientProvider.createSession();
+
+    try {
+      await session.startTransaction();
+      const { insertedId } = await collection.insertOne(
+        {
+          namespace: payload.namespace,
+          unit: payload.unit,
+          device: payload.device,
+          data: payload.data,
+          alarm: {
+            key: alarmId,
+          },
+          createdAt: new Date(),
+        },
+        { session },
+      );
+      const updateAlarm = await this.addDetectionToAlarm(
+        insertedId,
+        alarmId,
+        session,
+      );
+      if (updateAlarm.modifiedCount) {
+        await session.commitTransaction();
+        return;
+      }
+      await session.abortTransaction();
+      return;
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      await session.endSession();
+      return;
+    }
+  }
+
+  private async addDetectionToAlarm(
+    insertedId: ObjectId,
+    alarmKey: ObjectId,
+    session?: ClientSession,
+  ) {
+    const alarm = await this.alarmModel;
+
+    return alarm.updateOne(
+      { _id: alarmKey },
+      {
+        $addToSet: {
+          detections: {
+            key: insertedId,
+            addedAt: new Date(),
+          },
+        },
+      },
+      { session },
+    );
+  }
+
+  //End of the test
 
   async find(
     query: any,

@@ -1,59 +1,62 @@
 import {
-  Controller,
-  Get,
-  Param,
-  UseGuards,
-  NotFoundException,
-  Post,
   Body,
-  Query,
-  Patch,
+  Controller,
   Delete,
+  Get,
+  NotFoundException,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
-import { NamespaceJwtAuthGuard } from '../auth/guards/namespace-jwt-auth.guard';
-import { GetAlarmTypesUseCase } from '../../../../core/alarm/usecases/get-types.usecase';
-import { GetAlarmTypeSettingsUseCase } from '../../../../core/alarm/usecases/get-type-settings.usecase';
-import { GetAlarmTypeNotificationsUseCase } from '../../../../core/alarm/usecases/get-type-notifications.usecase';
-import { FetchAlarmTypesResponseDto } from './dto/fetch-types.dto';
+import { AlarmNotFoundException } from '../../../../core/alarm/exceptions/alarm-not-found.exception';
+import { AlarmTypeNotFoundException } from '../../../../core/alarm/exceptions/type-not-found.exception';
 import {
   AlarmTypeNotificationsResponse,
   AlarmTypeSettingsResponse,
 } from '../../../../core/alarm/type/type.type';
-import { AlarmTypeParamDto } from './dto/type.dto';
 import { CreateAlarmUseCase } from '../../../../core/alarm/usecases/create-alarm.usecase';
-import {
-  CreateAlarmRequestDto,
-  CreateAlarmResponseDto,
-  UpdateAlarmRequestDto,
-} from './dto/alarm.dto';
-import { UserRequestDecorator } from '../auth/decorators/user.decorator';
-import { UserRequest } from '../../../../core/common/type';
-import { FetchAlarmsUseCase } from '../../../../core/alarm/usecases/fetch-alarms.usecase';
-import { FetchAlarmUseCase } from '../../../../core/alarm/usecases/fetch-alarm.usecase';
-import {
-  FetchAlarmsRequestDto,
-  FetchAlarmsResponseDto,
-} from './dto/fetch-alarms.dto';
-import { FetchAlarmRequestDto } from './dto/fetch-alarm.dto';
-import { UpdateResponse } from '../../../../core/common/repository/global.repository';
-import { UpdateAlarmUseCase } from '../../../../core/alarm/usecases/update-alarm.usecase';
 import { DeleteAlarmUseCase } from '../../../../core/alarm/usecases/delete-alarm.usecase';
-import { DeleteRequestDto } from './dto/delete-alarm.dto';
-import { AlarmNotFoundException } from '../../../../core/alarm/exceptions/alarm-not-found.exception';
-import { AlarmTypeNotFoundException } from '../../../../core/alarm/exceptions/type-not-found.exception';
-import { PoliciesGuard } from '../auth/guards';
+import { DetectionUseCase } from '../../../../core/alarm/usecases/detection.usecase';
+import { FetchAlarmUseCase } from '../../../../core/alarm/usecases/fetch-alarm.usecase';
+import { FetchAlarmsUseCase } from '../../../../core/alarm/usecases/fetch-alarms.usecase';
+import { GetAlarmTypeNotificationsUseCase } from '../../../../core/alarm/usecases/get-type-notifications.usecase';
+import { GetAlarmTypeSettingsUseCase } from '../../../../core/alarm/usecases/get-type-settings.usecase';
+import { GetAlarmTypesUseCase } from '../../../../core/alarm/usecases/get-types.usecase';
+import { UpdateAlarmUseCase } from '../../../../core/alarm/usecases/update-alarm.usecase';
+import { UpdateResponse } from '../../../../core/common/repository/global.repository';
+import { UserRequest } from '../../../../core/common/type';
 import { CheckPolicies } from '../auth/decorators/policies.decorator';
+import { UserRequestDecorator } from '../auth/decorators/user.decorator';
+import { PoliciesGuard } from '../auth/guards';
+import { NamespaceJwtAuthGuard } from '../auth/guards/namespace-jwt-auth.guard';
 import {
   canCreateAlarm,
   canDeleteAlarm,
   canReadAlarm,
   canUpdateAlarm,
 } from '../casl/check-abilities/alarm.abilities';
+import {
+  CreateAlarmRequestDto,
+  CreateAlarmResponseDto,
+  UpdateAlarmRequestDto,
+} from './dto/alarm.dto';
+import { DeleteRequestDto } from './dto/delete-alarm.dto';
+import { DetectionDto } from './dto/detection.dto';
+import { FetchAlarmRequestDto } from './dto/fetch-alarm.dto';
+import {
+  FetchAlarmsRequestDto,
+  FetchAlarmsResponseDto,
+} from './dto/fetch-alarms.dto';
+import { FetchAlarmTypesResponseDto } from './dto/fetch-types.dto';
+import { AlarmTypeParamDto } from './dto/type.dto';
 
 @Controller('alarms')
 export class AlarmTypesController {
   constructor(
     private readonly fetchAlarmsUseCase: FetchAlarmsUseCase,
+    private readonly detectionUseCase: DetectionUseCase,
     private readonly fetchAlarmUseCase: FetchAlarmUseCase,
     private getAlarmTypesUseCase: GetAlarmTypesUseCase,
     private getAlarmTypeSettingsUseCase: GetAlarmTypeSettingsUseCase,
@@ -62,6 +65,12 @@ export class AlarmTypesController {
     private updateAlarmUseCase: UpdateAlarmUseCase,
     private deleteAlarmsUseCase: DeleteAlarmUseCase,
   ) {}
+
+  //TODO remove this after testing
+  @Post('test')
+  async testDetection(@Body() payload: DetectionDto) {
+    return this.detectionUseCase.execute(payload);
+  }
 
   @UseGuards(NamespaceJwtAuthGuard, PoliciesGuard)
   @CheckPolicies(canReadAlarm)

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class DetectLowBatteryUseCase {
+export class DetectSchedualUsecase {
   async execute(payload: Payload): Promise<boolean> {
     const date = new Date(payload.detectionDate);
     const dayName = date
@@ -54,7 +54,7 @@ export const timeToMinutes = (time: string): number => {
   return hours * 60 + minutes;
 };
 
-interface Schedule {
+export interface Schedule {
   template: 'everyday' | 'weekdays' | 'weekends' | 'custom';
   intervals: {
     day: string;

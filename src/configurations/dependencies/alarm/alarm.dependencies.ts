@@ -1,15 +1,24 @@
 import { Provider } from '@nestjs/common';
-import { GetAlarmTypesUseCase } from '../../../core/alarm/usecases/get-types.usecase';
-import { MongoAlarmTypeRepository } from '../../../adapters/secondary/monogodb/alarm/type.repository';
-import { GetAlarmTypeSettingsUseCase } from '../../../core/alarm/usecases/get-type-settings.usecase';
-import { GetAlarmTypeNotificationsUseCase } from '../../../core/alarm/usecases/get-type-notifications.usecase';
-import { CreateAlarmUseCase } from '../../../core/alarm/usecases/create-alarm.usecase';
-import { FetchAlarmsUseCase } from '../../../core/alarm/usecases/fetch-alarms.usecase';
-import { FetchAlarmUseCase } from '../../../core/alarm/usecases/fetch-alarm.usecase';
-import { UpdateAlarmUseCase } from '../../../core/alarm/usecases/update-alarm.usecase';
-import { DeleteAlarmUseCase } from '../../../core/alarm/usecases/delete-alarm.usecase';
-import { MongoAlarmRepository } from '../../../adapters/secondary/monogodb/alarm/alarm.repository';
 import { AlarmValidatorService } from '../../../adapters/primaries/nest/alarm/service/alarm-validator.service';
+import { MongoAlarmRepository } from '../../../adapters/secondary/monogodb/alarm/alarm.repository';
+import { MongoAlarmTypeRepository } from '../../../adapters/secondary/monogodb/alarm/type.repository';
+import { CreateAlarmUseCase } from '../../../core/alarm/usecases/create-alarm.usecase';
+import { DeleteAlarmUseCase } from '../../../core/alarm/usecases/delete-alarm.usecase';
+import { DetectDrivingTimeUsecase } from '../../../core/alarm/usecases/detect-driving-time.usecase';
+import { DetectExcessiveIdlingUsecase } from '../../../core/alarm/usecases/detect-excessive-idling.usecase';
+import { DetectGsmJammingUsecase } from '../../../core/alarm/usecases/detect-gsm-jamming.usecase';
+import { DetectLowBatteryUseCase } from '../../../core/alarm/usecases/detect-low-battery.usecase';
+import { DetectSchedualUsecase } from '../../../core/alarm/usecases/detect-schedual.usecase';
+import { DetectSignalLostUseCase } from '../../../core/alarm/usecases/detect-signal-lost.usecase';
+import { DetectSpeedingUseCase } from '../../../core/alarm/usecases/detect-speeding-usecase';
+import { DetectTrackerOfflineUseCase } from '../../../core/alarm/usecases/detect-tracker-offline.usecase';
+import { DetectionUseCase } from '../../../core/alarm/usecases/detection.usecase';
+import { FetchAlarmUseCase } from '../../../core/alarm/usecases/fetch-alarm.usecase';
+import { FetchAlarmsUseCase } from '../../../core/alarm/usecases/fetch-alarms.usecase';
+import { GetAlarmTypeNotificationsUseCase } from '../../../core/alarm/usecases/get-type-notifications.usecase';
+import { GetAlarmTypeSettingsUseCase } from '../../../core/alarm/usecases/get-type-settings.usecase';
+import { GetAlarmTypesUseCase } from '../../../core/alarm/usecases/get-types.usecase';
+import { UpdateAlarmUseCase } from '../../../core/alarm/usecases/update-alarm.usecase';
 import { MongoDbClientProvider } from '../../mongodb/mongodb-client';
 
 export const AlarmUseCases: Provider[] = [
@@ -19,6 +28,34 @@ export const AlarmUseCases: Provider[] = [
       return new GetAlarmTypesUseCase(repository);
     },
     inject: [MongoAlarmTypeRepository],
+  },
+  //TODO Delete this after the test
+  {
+    provide: DetectionUseCase,
+    useFactory: (
+      repository: MongoAlarmRepository,
+      detectDrivingTimeUsecase: DetectDrivingTimeUsecase,
+      detectExcessiveIdlingUsecase: DetectExcessiveIdlingUsecase,
+      detectGsmJammingUsecase: DetectGsmJammingUsecase,
+      detectLowBatteryUseCase: DetectLowBatteryUseCase,
+      detectSchedualUsecase: DetectSchedualUsecase,
+      detectSignalLostUseCase: DetectSignalLostUseCase,
+      detectSpeedingUseCase: DetectSpeedingUseCase,
+      detectTrackerOfflineUseCase: DetectTrackerOfflineUseCase,
+    ) => {
+      return new DetectionUseCase(
+        repository,
+        detectDrivingTimeUsecase,
+        detectExcessiveIdlingUsecase,
+        detectGsmJammingUsecase,
+        detectLowBatteryUseCase,
+        detectSchedualUsecase,
+        detectSignalLostUseCase,
+        detectSpeedingUseCase,
+        detectTrackerOfflineUseCase,
+      );
+    },
+    inject: [MongoAlarmRepository],
   },
   {
     provide: GetAlarmTypeSettingsUseCase,
