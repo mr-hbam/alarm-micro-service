@@ -8,7 +8,6 @@ export class DetectLowBatteryUseCase {
 }
 
 interface IPayload {
-  maxVoltage: number;
   deviceVoltage: number;
   minVoltage: number;
 }

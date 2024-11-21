@@ -6,16 +6,15 @@ export class DetectExcessiveIdlingUsecase {
     const { isEngineRunning, isMoving, timestamp, maxIdelingTime, device } =
       payload;
     const { timeUnit } = options;
-    if (!isEngineRunning || isMoving) {
-      return false;
-    }
 
     const idelingStartTime = await this.idelingTime(device);
 
-    if (!idelingStartTime) {
+    if (!idelingStartTime && isEngineRunning && !isMoving) {
       await this.saveIdelingTime(device, timestamp);
       return false;
     }
+    await this.resetIdelingTime(device);
+
     let idelingTime = 0;
     switch (timeUnit) {
       case 'minutes':
@@ -42,15 +41,18 @@ export class DetectExcessiveIdlingUsecase {
     }
 
     const maxId = maxIdelingTime - idelingTime;
-
     return maxId <= 0;
   }
 
-  private async idelingTime(device: string): Promise<number> {
-    return undefined;
+  private async idelingTime(device: string): Promise<string> {
+    return '2024-06-21T00:44:30.000Z';
   }
 
   private saveIdelingTime(device: string, timestamp: string): void {
+    return;
+  }
+
+  private resetIdelingTime(device: string): void {
     return;
   }
 }

@@ -3,12 +3,18 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class DetectDrivingTimeUsecase {
   async execute(payload: Payload, options: Options): Promise<boolean> {
-    const { timestamp, drivingTimeThreshold, isMoving, device } = payload;
-    const { timeUnit } = options;
+    const {
+      timestamp,
+      drivingTimeThreshold,
+      isMoving,
+      device,
+      parkingTimeThreshold,
+    } = payload;
 
     if (isMoving) {
       const startTime = await this.getStartTime(device);
       if (!startTime) {
+        await this.saveStartTime(device, timestamp, isMoving);
         return false;
       }
       await this.resetTime(device);
@@ -17,20 +23,21 @@ export class DetectDrivingTimeUsecase {
         options,
         startTime,
         drivingTimeThreshold,
+        device,
       );
     }
     const startTime = await this.getStartTime(device);
 
     if (!startTime) {
-      await this.saveStartTime(device, timestamp);
+      await this.saveStartTime(device, timestamp, isMoving);
       return false;
     }
-
     return this.calculateDrivingTime(
       payload,
       options,
       startTime,
-      drivingTimeThreshold,
+      parkingTimeThreshold,
+      device,
     );
   }
 
@@ -38,7 +45,8 @@ export class DetectDrivingTimeUsecase {
     { timestamp }: Payload,
     { timeUnit }: Options,
     startTime: string,
-    drivingTimeThreshold: number,
+    timeThreshold: number,
+    device: string,
   ): Promise<boolean> {
     let drivingTime = 0;
     switch (timeUnit) {
@@ -61,20 +69,22 @@ export class DetectDrivingTimeUsecase {
       default:
         break;
     }
+    await this.resetTime(device);
 
-    if (drivingTime > drivingTimeThreshold) {
+    if (drivingTime > timeThreshold) {
       return true;
     }
     return false;
   }
 
   private async getStartTime(device: string): Promise<string> {
-    return '2024-06-21T22:44:30.000Z';
+    return '2024-06-21T00:44:30.000Z';
   }
 
   private async saveStartTime(
     device: string,
     timestamp: string,
+    isMoving: boolean = false,
   ): Promise<void> {
     return;
   }
@@ -89,6 +99,7 @@ interface Payload {
   drivingTimeThreshold: number;
   isMoving: boolean;
   device: string;
+  parkingTimeThreshold: number;
 }
 
 interface Options {

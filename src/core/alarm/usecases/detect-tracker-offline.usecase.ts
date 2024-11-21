@@ -7,16 +7,16 @@ export class DetectTrackerOfflineUseCase {
 
     const { timestamp, offlineThreshold, device, isOffline } = payload;
 
-    if (!isOffline) {
+    const driveTimeStart = await this.getStartTime(device);
+
+    if (!driveTimeStart && isOffline) {
+      await this.saveStartTime(device, timestamp);
+      return false;
+    } else if (!driveTimeStart && !isOffline) {
       await this.clearStartTime(device);
       return false;
     }
-    const driveTimeStart = await this.getStartTime(device);
 
-    if (!driveTimeStart) {
-      await this.saveStartTime(device, timestamp);
-      return false;
-    }
     switch (options.timeUnit) {
       case 'minutes':
         offlineTime =
@@ -37,11 +37,12 @@ export class DetectTrackerOfflineUseCase {
       default:
         break;
     }
+
     return offlineTime >= offlineThreshold;
   }
 
   private async getStartTime(device: string): Promise<string> {
-    return '2024-06-21T22:44:30.000Z';
+    return '2024-06-21T00:44:30.000Z';
   }
 
   private async saveStartTime(

@@ -12,19 +12,32 @@ import {
 } from '@nestjs/common';
 import { AlarmNotFoundException } from '../../../../core/alarm/exceptions/alarm-not-found.exception';
 import { AlarmTypeNotFoundException } from '../../../../core/alarm/exceptions/type-not-found.exception';
+import { AlarmTypeValue } from '../../../../core/alarm/type/type.enum';
 import {
   AlarmTypeNotificationsResponse,
   AlarmTypeSettingsResponse,
 } from '../../../../core/alarm/type/type.type';
-import { CreateAlarmUseCase } from '../../../../core/alarm/usecases/create-alarm.usecase';
-import { DeleteAlarmUseCase } from '../../../../core/alarm/usecases/delete-alarm.usecase';
-import { DetectionUseCase } from '../../../../core/alarm/usecases/detection.usecase';
-import { FetchAlarmUseCase } from '../../../../core/alarm/usecases/fetch-alarm.usecase';
-import { FetchAlarmsUseCase } from '../../../../core/alarm/usecases/fetch-alarms.usecase';
-import { GetAlarmTypeNotificationsUseCase } from '../../../../core/alarm/usecases/get-type-notifications.usecase';
-import { GetAlarmTypeSettingsUseCase } from '../../../../core/alarm/usecases/get-type-settings.usecase';
-import { GetAlarmTypesUseCase } from '../../../../core/alarm/usecases/get-types.usecase';
-import { UpdateAlarmUseCase } from '../../../../core/alarm/usecases/update-alarm.usecase';
+import {
+  CreateAlarmUseCase,
+  CreateDetectionUseCase,
+  DeleteAlarmUseCase,
+  DetectDrivingTimeUsecase,
+  DetectExcessiveIdlingUsecase,
+  DetectGsmJammingUsecase,
+  DetectLowBatteryUseCase,
+  DetectScheduleUsecase,
+  DetectSignalLostUseCase,
+  DetectSpeedingUseCase,
+  DetectTrackerOfflineUseCase,
+  FetchAlarmsUseCase,
+  FetchAlarmUseCase,
+  GetAlarmTypeNotificationsUseCase,
+  GetAlarmTypeSettingsUseCase,
+  GetAlarmTypesUseCase,
+  GetDeviceAlarmUsecase,
+  Schedule,
+  UpdateAlarmUseCase,
+} from '../../../../core/alarm/usecases';
 import { UpdateResponse } from '../../../../core/common/repository/global.repository';
 import { UserRequest } from '../../../../core/common/type';
 import { CheckPolicies } from '../auth/decorators/policies.decorator';
@@ -56,7 +69,7 @@ import { AlarmTypeParamDto } from './dto/type.dto';
 export class AlarmTypesController {
   constructor(
     private readonly fetchAlarmsUseCase: FetchAlarmsUseCase,
-    private readonly detectionUseCase: DetectionUseCase,
+    private readonly createDetectionUseCase: CreateDetectionUseCase,
     private readonly fetchAlarmUseCase: FetchAlarmUseCase,
     private getAlarmTypesUseCase: GetAlarmTypesUseCase,
     private getAlarmTypeSettingsUseCase: GetAlarmTypeSettingsUseCase,
@@ -64,12 +77,125 @@ export class AlarmTypesController {
     private createAlarmUseCase: CreateAlarmUseCase,
     private updateAlarmUseCase: UpdateAlarmUseCase,
     private deleteAlarmsUseCase: DeleteAlarmUseCase,
+    private detectDrivingTimeUsecase: DetectDrivingTimeUsecase,
+    private detectExcessiveIdlingUsecase: DetectExcessiveIdlingUsecase,
+    private detectGsmJammingUsecase: DetectGsmJammingUsecase,
+    private detectLowBatteryUseCase: DetectLowBatteryUseCase,
+    private detectScheduleUsecase: DetectScheduleUsecase,
+    private detectSignalLostUseCase: DetectSignalLostUseCase,
+    private detectSpeedingUseCase: DetectSpeedingUseCase,
+    private getDeviceAlarmUsecase: GetDeviceAlarmUsecase,
+    private detectTrackerOfflineUseCase: DetectTrackerOfflineUseCase,
   ) {}
 
   //TODO remove this after testing
   @Post('test')
   async testDetection(@Body() payload: DetectionDto) {
-    return this.detectionUseCase.execute(payload);
+    const alarmsForDevice = await this.getDeviceAlarmUsecase.execute(
+      payload.device,
+    );
+
+    for (const alarm of alarmsForDevice) {
+      const alarmId = alarm['_id'].toString();
+      let isConditionMet = false;
+      switch (alarm.type) {
+        case AlarmTypeValue.DRIVING_TIME:
+          isConditionMet = await this.detectDrivingTimeUsecase.execute(
+            {
+              device: payload.device,
+              drivingTimeThreshold: Number(alarm.settings.ADT),
+              parkingTimeThreshold: Number(alarm.settings.MPTR),
+              isMoving: payload.data.movement_status,
+              timestamp: payload.data.timestamp,
+            },
+            { timeUnit: 'minutes' },
+          );
+          break;
+
+        case AlarmTypeValue.TRACKER_OFFLINE:
+          isConditionMet = await this.detectTrackerOfflineUseCase.execute(
+            {
+              device: payload.device,
+              offlineThreshold: alarm.settings.OTMT,
+              isOffline: payload.data.offline,
+              timestamp: payload.data.timestamp,
+            },
+            { timeUnit: 'minutes' },
+          );
+          break;
+
+        case AlarmTypeValue.SPEEDING:
+          isConditionMet = await this.detectSpeedingUseCase.execute(
+            {
+              currentSpeed: payload.data.position_speed,
+              isMoving: payload.data.movement_status,
+              speedLimit: Number(alarm.settings.speed_limit),
+            },
+            {
+              tolerance: 0,
+              useExternalSpeedLimit: !!alarm.settings.external_speed_limit,
+            },
+          );
+          break;
+
+        case AlarmTypeValue.EXCESSIVE_IDLING_HARDWARE:
+          isConditionMet = await this.detectExcessiveIdlingUsecase.execute(
+            {
+              device: payload.device,
+              isMoving: payload.data.movement_status,
+              timestamp: payload.data.timestamp,
+              isEngineRunning: payload.data.engine_ignition_status,
+              maxIdelingTime: 60,
+            },
+            { timeUnit: 'minutes' },
+          );
+          break;
+
+        case AlarmTypeValue.GSM_JAMMING:
+          isConditionMet = await this.detectGsmJammingUsecase.execute({
+            io249: payload.data.io_249 === 1,
+          });
+          break;
+
+        case AlarmTypeValue.LOW_BATTERY:
+          isConditionMet = await this.detectLowBatteryUseCase.execute({
+            deviceVoltage: payload.data.battery_voltage,
+            minVoltage: 500,
+          });
+          break;
+
+        case AlarmTypeValue.GPS_SIGNAL_LOST:
+          isConditionMet = await this.detectSignalLostUseCase.execute({
+            currentSignal: payload.data.gsm_signal,
+            minSignal: 100,
+          });
+          break;
+
+        default:
+          isConditionMet = false;
+          break;
+      }
+
+      if (isConditionMet) {
+        const schedule = alarm.schedule as Schedule;
+        const isInSchedule = await this.detectScheduleUsecase.execute({
+          detectionDate: payload.data.timestamp,
+          schedule: schedule,
+        });
+
+        if (isInSchedule) {
+          await this.createDetectionUseCase.execute(
+            {
+              namespace: payload.namespace,
+              unit: payload.unit,
+              device: payload.device,
+              data: payload.data,
+            },
+            alarmId,
+          );
+        }
+      }
+    }
   }
 
   @UseGuards(NamespaceJwtAuthGuard, PoliciesGuard)

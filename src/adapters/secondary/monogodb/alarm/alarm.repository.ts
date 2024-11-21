@@ -47,7 +47,6 @@ export class MongoAlarmRepository implements AlarmRepository {
     const collection = await this.detectionModel;
     const alarmId = new ObjectId(payload.alarmId);
     const session = await this.mongodbClientProvider.createSession();
-
     try {
       await session.startTransaction();
       const { insertedId } = await collection.insertOne(
@@ -75,6 +74,7 @@ export class MongoAlarmRepository implements AlarmRepository {
       await session.abortTransaction();
       return;
     } catch (err) {
+      console.error('Error creating detection', err);
       await session.abortTransaction();
       throw err;
     } finally {
@@ -90,18 +90,22 @@ export class MongoAlarmRepository implements AlarmRepository {
   ) {
     const alarm = await this.alarmModel;
 
-    return alarm.updateOne(
-      { _id: alarmKey },
-      {
-        $addToSet: {
-          detections: {
-            key: insertedId,
-            addedAt: new Date(),
+    try {
+      return alarm.updateOne(
+        { _id: alarmKey },
+        {
+          $addToSet: {
+            detections: {
+              key: insertedId,
+              addedAt: new Date(),
+            },
           },
         },
-      },
-      { session },
-    );
+        { session },
+      );
+    } catch (error) {
+      console.error('Error adding detection to alarm', error);
+    }
   }
 
   //End of the test

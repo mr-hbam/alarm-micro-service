@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class DetectSchedualUsecase {
+export class DetectScheduleUsecase {
   async execute(payload: Payload): Promise<boolean> {
     const date = new Date(payload.detectionDate);
     const dayName = date

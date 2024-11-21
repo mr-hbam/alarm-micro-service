@@ -4,6 +4,8 @@ import {
   IsNumber,
   IsObject,
   IsString,
+  Max,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
@@ -34,6 +36,9 @@ class DataDto {
 
   @IsBoolean()
   engine_ignition_status: boolean;
+
+  @IsBoolean()
+  offline: boolean;
 
   @IsBoolean()
   movement_status: boolean;
@@ -67,6 +72,11 @@ class DataDto {
 
   @IsNumber()
   io_16: number;
+
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  io_249: number;
 
   @IsNumber()
   io_107: number;
