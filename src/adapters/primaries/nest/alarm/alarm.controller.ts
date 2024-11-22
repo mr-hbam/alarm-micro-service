@@ -89,8 +89,8 @@ export class AlarmTypesController {
   ) {}
 
   //TODO remove this after testing
-  @Post('test')
-  async testDetection(@Body() payload: DetectionDto) {
+  @Post('detection')
+  async detection(@Body() payload: DetectionDto) {
     const alarmsForDevice = await this.getDeviceAlarmUsecase.execute(
       payload.device,
     );
