@@ -21,11 +21,6 @@ import {
 } from '../../../../core/alarm/type/type.type';
 import { AlarmTypeParamDto } from './dto/type.dto';
 import { CreateAlarmUseCase } from '../../../../core/alarm/usecases/create-alarm.usecase';
-import {
-  CreateAlarmRequestDto,
-  CreateAlarmResponseDto,
-  UpdateAlarmRequestDto,
-} from './dto/alarm.dto';
 import { UserRequestDecorator } from '../auth/decorators/user.decorator';
 import { UserRequest } from '../../../../core/common/type';
 import { FetchAlarmsUseCase } from '../../../../core/alarm/usecases/fetch-alarms.usecase';
@@ -49,6 +44,11 @@ import {
   canReadAlarm,
   canUpdateAlarm,
 } from '../casl/check-abilities/alarm.abilities';
+import {
+  CreateAlarmRequestDto,
+  CreateAlarmResponseDto,
+} from './dto/create-alarm.dto';
+import { UpdateAlarmRequestDto } from './dto/update-alarm.dto';
 
 @Controller('alarms')
 export class AlarmTypesController {
@@ -120,15 +120,12 @@ export class AlarmTypesController {
   @UseGuards(NamespaceJwtAuthGuard, PoliciesGuard)
   @CheckPolicies(canCreateAlarm)
   @Post()
-  @UseGuards(NamespaceJwtAuthGuard)
   async createAlarm(
     @Body() createAlarmDto: CreateAlarmRequestDto,
     @UserRequestDecorator() user: UserRequest,
   ): Promise<CreateAlarmResponseDto> {
-    return this.createAlarmUseCase.execute(createAlarmDto, {
-      key: user.key,
-      namespace: user.namespace,
-    });
+    // Passing the complete user object since UserRequest requires all properties
+    return this.createAlarmUseCase.execute(createAlarmDto, user);
   }
 
   @UseGuards(NamespaceJwtAuthGuard, PoliciesGuard)
@@ -148,7 +145,7 @@ export class AlarmTypesController {
       throw new AlarmNotFoundException(payload.key);
     }
 
-    return this.updateAlarmUseCase.execute(user.namespace, payload.key, {
+    return this.updateAlarmUseCase.execute(user, payload.key, {
       ...alarm,
       type: alarmResult.type,
     });
@@ -162,12 +159,7 @@ export class AlarmTypesController {
     @Query() payload: DeleteRequestDto,
   ) {
     try {
-      const result = await this.deleteAlarmsUseCase.execute(
-        user.namespace,
-        payload,
-      );
-
-      return result;
+      return await this.deleteAlarmsUseCase.execute(user.namespace, payload);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

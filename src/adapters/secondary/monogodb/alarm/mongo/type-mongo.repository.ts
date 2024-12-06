@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Collection } from 'mongodb';
-import { MongoDbClientProvider } from '../../../../configurations/mongodb/mongodb-client';
-import { AlarmTypeRepository } from '../../../../core/alarm/repositories/type.repository';
-import { AlarmTypeEntity } from '../../../../core/alarm/entities/type.entity';
-import { AlarmTypeValue } from '../../../../core/alarm/type/type.enum';
-import { MongoCollections } from '../../common/mongodb/collections';
+import { AlarmTypeRepository } from '../../../../../core/alarm/repositories/type.repository';
+import { MongoDbClientProvider } from '../../../../../configurations/mongodb/mongodb-client';
+import { MongoCollections } from '../../../common/mongodb/collections';
+import { AlarmTypeEntity } from '../../../../../core/alarm/entities/type.entity';
+import { AlarmTypeValue } from '../../../../../core/alarm/type/type.enum';
 
 @Injectable()
 export class MongoAlarmTypeRepository implements AlarmTypeRepository {

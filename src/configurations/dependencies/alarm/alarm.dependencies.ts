@@ -1,6 +1,5 @@
 import { Provider } from '@nestjs/common';
 import { GetAlarmTypesUseCase } from '../../../core/alarm/usecases/get-types.usecase';
-import { MongoAlarmTypeRepository } from '../../../adapters/secondary/monogodb/alarm/type.repository';
 import { GetAlarmTypeSettingsUseCase } from '../../../core/alarm/usecases/get-type-settings.usecase';
 import { GetAlarmTypeNotificationsUseCase } from '../../../core/alarm/usecases/get-type-notifications.usecase';
 import { CreateAlarmUseCase } from '../../../core/alarm/usecases/create-alarm.usecase';
@@ -8,9 +7,11 @@ import { FetchAlarmsUseCase } from '../../../core/alarm/usecases/fetch-alarms.us
 import { FetchAlarmUseCase } from '../../../core/alarm/usecases/fetch-alarm.usecase';
 import { UpdateAlarmUseCase } from '../../../core/alarm/usecases/update-alarm.usecase';
 import { DeleteAlarmUseCase } from '../../../core/alarm/usecases/delete-alarm.usecase';
-import { MongoAlarmRepository } from '../../../adapters/secondary/monogodb/alarm/alarm.repository';
-import { AlarmValidatorService } from '../../../adapters/primaries/nest/alarm/service/alarm-validator.service';
 import { MongoDbClientProvider } from '../../mongodb/mongodb-client';
+import { MongoAlarmTypeRepository } from '../../../adapters/secondary/monogodb/alarm/mongo/type-mongo.repository';
+import { MongoAlarmRepository } from '../../../adapters/secondary/monogodb/alarm/mongo/alarm-mongo.repository';
+import { initAlarmMapper } from '../../../adapters/secondary/monogodb/alarm/mongo/alarm-mongo.mapper';
+import { initAlarmTypeMapper } from '../../../adapters/secondary/monogodb/alarm/mongo/alarm-type-mongo.mapper';
 
 export const AlarmUseCases: Provider[] = [
   {
@@ -53,25 +54,17 @@ export const AlarmUseCases: Provider[] = [
     useFactory: (
       alarmRepo: MongoAlarmRepository,
       typeRepo: MongoAlarmTypeRepository,
-      validator: AlarmValidatorService,
     ) => {
-      return new CreateAlarmUseCase(alarmRepo, typeRepo, validator);
+      return new CreateAlarmUseCase(alarmRepo, typeRepo);
     },
-    inject: [
-      MongoAlarmRepository,
-      MongoAlarmTypeRepository,
-      AlarmValidatorService,
-    ],
+    inject: [MongoAlarmRepository, MongoAlarmTypeRepository],
   },
   {
     provide: UpdateAlarmUseCase,
-    useFactory: (
-      repository: MongoAlarmRepository,
-      validator: AlarmValidatorService,
-    ) => {
-      return new UpdateAlarmUseCase(repository, validator);
+    useFactory: (repository: MongoAlarmRepository) => {
+      return new UpdateAlarmUseCase(repository);
     },
-    inject: [MongoAlarmRepository, AlarmValidatorService],
+    inject: [MongoAlarmRepository],
   },
   {
     provide: DeleteAlarmUseCase,
@@ -83,7 +76,6 @@ export const AlarmUseCases: Provider[] = [
 ];
 
 export const AlarmProviders: Provider[] = [
-  AlarmValidatorService,
   {
     provide: MongoAlarmRepository,
     useFactory: (mongodbClientProvider: MongoDbClientProvider) =>
@@ -97,6 +89,11 @@ export const AlarmProviders: Provider[] = [
     inject: [MongoDbClientProvider],
   },
 ];
+
+export const initAlarmMappers = () => {
+  initAlarmMapper();
+  initAlarmTypeMapper();
+};
 
 const alarmDependencies: Provider[] = [...AlarmProviders, ...AlarmUseCases];
 

@@ -1,7 +1,7 @@
 import { Provider } from '@nestjs/common';
 import { MongoDbClientProvider } from '../../mongodb/mongodb-client';
-import { MongoAlarmTypeRepository } from '../../../adapters/secondary/monogodb/alarm/type.repository';
-import { MongoAlarmRepository } from '../../../adapters/secondary/monogodb/alarm/alarm.repository';
+import { MongoAlarmTypeRepository } from '../../../adapters/secondary/monogodb/alarm/mongo/type-mongo.repository';
+import { MongoAlarmRepository } from '../../../adapters/secondary/monogodb/alarm/mongo/alarm-mongo.repository';
 
 export const AlarmRepositoriesProviders: Provider[] = [
   {

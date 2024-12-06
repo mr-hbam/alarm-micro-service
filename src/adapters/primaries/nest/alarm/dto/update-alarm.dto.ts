@@ -1,25 +1,44 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { AlarmTypeValue } from '../../../../../core/alarm/type/type.enum';
+import {
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { NotificationsDto, ScheduleDto } from './alarm.dto';
+import { CreateAlarmRequestDto } from './create-alarm.dto';
 
-export class UpdateAlarmRequestDto {
-  @IsOptional()
-  @IsEnum(AlarmTypeValue)
-  type?: AlarmTypeValue;
-
+export class UpdateAlarmRequestDto implements Partial<CreateAlarmRequestDto> {
   @IsOptional()
   @IsString()
+  @IsNotEmpty()
   name?: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   description?: string;
 
+  @IsObject()
   @IsOptional()
   settings?: Record<string, any>;
 
+  @ValidateNested()
   @IsOptional()
-  notifications?: Record<string, any>;
+  @Type(() => NotificationsDto)
+  notifications?: NotificationsDto;
 
+  @ValidateNested()
   @IsOptional()
-  schedule?: Record<string, any>;
+  @Type(() => ScheduleDto)
+  schedule?: ScheduleDto;
+}
+
+export class UpdateAlarmResponseDto {
+  success: boolean;
+}
+
+export interface UpdateResponse {
+  success: boolean;
+  modifiedCount: number;
 }

@@ -1,13 +1,29 @@
 import { createMap, createMapper, forMember, mapFrom } from '@automapper/core';
 import { classes } from '@automapper/classes';
-import { MongoCreateAtUpdateAt } from '../../adapters/secondary/common/mongodb/type';
 import { CreateAtUpdateAt } from '../../core/common/repository/global.repository';
 import { decrypt } from '../cryptography';
 
+// Define the MongoDB source type
+export class MongoCreateAtUpdateAt {
+  updatedAt: Date;
+  updatedBy?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+  createdBy?: {
+    _id: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+// Create the mapper instance
 export const mapper = createMapper({
   strategyInitializer: classes(),
 });
 
+// Create the mapping configuration
 export const MongoCreateAtUpdateAtMapper = createMap(
   mapper,
   MongoCreateAtUpdateAt,

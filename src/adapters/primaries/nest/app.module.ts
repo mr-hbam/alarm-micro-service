@@ -16,7 +16,6 @@ import { BasicStrategy } from './auth/strategies/basic-auth.strategy';
 import alarmDependencies from '../../../configurations/dependencies/alarm';
 import { MongoDbClientProvider } from '../../../configurations/mongodb/mongodb-client';
 import { AlarmTypesController } from './alarm/alarm.controller';
-import { AlarmValidatorService } from './alarm/service/alarm-validator.service';
 
 @Module({
   controllers: [AppController, AlarmTypesController, HealthController],
@@ -35,7 +34,6 @@ import { AlarmValidatorService } from './alarm/service/alarm-validator.service';
     MongoDbClientProvider,
     ...dependencies,
     ...alarmDependencies,
-    AlarmValidatorService,
     JwtStrategy,
     Jwt2FaStrategy,
     NamespaceJwt2FaStrategy,

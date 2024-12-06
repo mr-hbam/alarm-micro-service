@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { Collection } from 'mongodb';
-import { MongoDbClientProvider } from '../../../../configurations/mongodb/mongodb-client';
-import { AlarmRepository } from '../../../../core/alarm/repositories/alarm.repository';
-import { MongoFilterNamespaceOptionsType } from '../../common/type';
-import { MongoCollections } from '../../common/mongodb/collections';
+import { Collection, ObjectId } from 'mongodb';
+import { AlarmRepository } from '../../../../../core/alarm/repositories/alarm.repository';
+import { MongoDbClientProvider } from '../../../../../configurations/mongodb/mongodb-client';
+import { MongoCollections } from '../../../common/mongodb/collections';
+import { AlarmEntity } from '../../../../../core/alarm/entities/alarm.entity';
+import { MongoAlarmItem } from './type';
+import { mapper } from '../../../../../common/mappings/mapper';
+import { MongoFilterNamespaceOptionsType } from '../../../common/type';
 import {
   CreateAlarmRequestDto,
   CreateAlarmResponseDto,
-} from '../../../primaries/nest/alarm/dto/alarm.dto';
-import { AlarmEntity } from '../../../../core/alarm/entities/alarm.entity';
+} from '../../../../primaries/nest/alarm/dto/create-alarm.dto';
 
 @Injectable()
 export class MongoAlarmRepository implements AlarmRepository {
@@ -27,11 +29,15 @@ export class MongoAlarmRepository implements AlarmRepository {
     options: MongoFilterNamespaceOptionsType,
   ): Promise<AlarmEntity[]> {
     const collection = await this.alarmModel;
-    return collection
-      .find<AlarmEntity>({ ...query, namespace: options.namespace })
+    const alarms = await collection
+      .find<MongoAlarmItem>({ ...query, namespace: options.namespace })
       .skip((page - 1) * limit)
       .limit(limit)
       .toArray();
+
+    return alarms.map((alarm) =>
+      mapper.map(alarm, MongoAlarmItem, AlarmEntity),
+    );
   }
 
   async count(
@@ -50,22 +56,24 @@ export class MongoAlarmRepository implements AlarmRepository {
     options: MongoFilterNamespaceOptionsType,
   ): Promise<AlarmEntity | null> {
     const collection = await this.alarmModel;
-    return collection.findOne<AlarmEntity>({
+    const alarm = await collection.findOne<MongoAlarmItem>({
       ...query,
       namespace: options.namespace,
     });
+    return alarm ? mapper.map(alarm, MongoAlarmItem, AlarmEntity) : null;
   }
 
   async createAlarm(
-    payload: CreateAlarmRequestDto,
-    options: MongoFilterNamespaceOptionsType,
+    payload: CreateAlarmRequestDto & {
+      namespace: string;
+      createdBy: string;
+      updatedBy: string;
+    },
   ): Promise<CreateAlarmResponseDto> {
     const collection = await this.alarmModel;
-
     const alarm = {
+      _id: new ObjectId(),
       ...payload,
-      namespace: options.namespace,
-      key: options.key,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -73,8 +81,8 @@ export class MongoAlarmRepository implements AlarmRepository {
     const result = await collection.insertOne(alarm);
 
     return {
-      namespace: options.namespace,
       success: result.acknowledged,
+      key: result.insertedId.toString(),
     };
   }
 
@@ -89,6 +97,7 @@ export class MongoAlarmRepository implements AlarmRepository {
       {
         $set: {
           ...payload,
+          updatedBy: options.key,
           updatedAt: new Date(),
         },
       },

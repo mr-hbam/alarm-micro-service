@@ -1,7 +1,8 @@
 import { AutoMap } from '@automapper/classes';
 import { AlarmTypeValue } from '../type/type.enum';
+import { CreateAtUpdateAt } from '../../common/repository/global.repository';
 
-export class AlarmEntity {
+export class AlarmEntity extends CreateAtUpdateAt {
   @AutoMap()
   key: string;
 
@@ -27,7 +28,10 @@ export class AlarmEntity {
   schedule: Record<string, any>;
 
   @AutoMap()
-  createdAt: Date;
+  createdBy?: { key: string; name: string };
+
+  @AutoMap()
+  updatedBy?: { key: string; name: string };
 
   @AutoMap()
   updatedAt: Date;
