@@ -64,7 +64,7 @@ export class AlarmTypesController {
   ) {}
 
   @UseGuards(NamespaceJwtAuthGuard, PoliciesGuard)
-  // @CheckPolicies(canReadAlarm)
+  @CheckPolicies(canReadAlarm)
   @Get()
   async fetchAlarms(
     @UserRequestDecorator() user: UserRequest,
