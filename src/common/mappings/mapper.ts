@@ -3,7 +3,6 @@ import { classes } from '@automapper/classes';
 import { CreateAtUpdateAt } from '../../core/common/repository/global.repository';
 import { decrypt } from '../cryptography';
 
-// Define the MongoDB source type
 export class MongoCreateAtUpdateAt {
   updatedAt: Date;
   updatedBy?: {
@@ -18,12 +17,10 @@ export class MongoCreateAtUpdateAt {
   };
 }
 
-// Create the mapper instance
 export const mapper = createMapper({
   strategyInitializer: classes(),
 });
 
-// Create the mapping configuration
 export const MongoCreateAtUpdateAtMapper = createMap(
   mapper,
   MongoCreateAtUpdateAt,

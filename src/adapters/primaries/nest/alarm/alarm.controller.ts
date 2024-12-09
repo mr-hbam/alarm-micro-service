@@ -64,7 +64,7 @@ export class AlarmTypesController {
   ) {}
 
   @UseGuards(NamespaceJwtAuthGuard, PoliciesGuard)
-  @CheckPolicies(canReadAlarm)
+  // @CheckPolicies(canReadAlarm)
   @Get()
   async fetchAlarms(
     @UserRequestDecorator() user: UserRequest,
@@ -124,7 +124,6 @@ export class AlarmTypesController {
     @Body() createAlarmDto: CreateAlarmRequestDto,
     @UserRequestDecorator() user: UserRequest,
   ): Promise<CreateAlarmResponseDto> {
-    // Passing the complete user object since UserRequest requires all properties
     return this.createAlarmUseCase.execute(createAlarmDto, user);
   }
 

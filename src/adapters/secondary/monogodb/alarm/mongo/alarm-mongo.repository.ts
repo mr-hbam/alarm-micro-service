@@ -11,6 +11,14 @@ import {
   CreateAlarmRequestDto,
   CreateAlarmResponseDto,
 } from '../../../../primaries/nest/alarm/dto/create-alarm.dto';
+import {
+  aggregateLookup,
+  aggregatePagination,
+  projectCreatedAndUpdated,
+  saveCreatedAtAndUpdatedAt,
+  saveUpdatedAt,
+} from '../../../common/mongodb/mongo.helper';
+import { initAlarmMapper } from './alarm-mongo.mapper';
 
 @Injectable()
 export class MongoAlarmRepository implements AlarmRepository {
@@ -20,6 +28,24 @@ export class MongoAlarmRepository implements AlarmRepository {
     this.alarmModel = mongodbClientProvider.getCollection(
       MongoCollections.ALARM,
     );
+    initAlarmMapper();
+  }
+
+  private buildMatchQuery(
+    query: any,
+    options: MongoFilterNamespaceOptionsType,
+  ) {
+    const matchQuery: any = { namespace: options.namespace };
+
+    if (query.search) {
+      matchQuery.name = { $regex: query.search, $options: 'i' };
+    }
+
+    if (query.type) {
+      matchQuery.type = query.type;
+    }
+
+    return matchQuery;
   }
 
   async find(
@@ -29,10 +55,30 @@ export class MongoAlarmRepository implements AlarmRepository {
     options: MongoFilterNamespaceOptionsType,
   ): Promise<AlarmEntity[]> {
     const collection = await this.alarmModel;
+    const skip = (page - 1) * limit;
+
     const alarms = await collection
-      .find<MongoAlarmItem>({ ...query, namespace: options.namespace })
-      .skip((page - 1) * limit)
-      .limit(limit)
+      .aggregate<MongoAlarmItem>([
+        {
+          $match: this.buildMatchQuery(query, options),
+        },
+        ...aggregatePagination(skip, limit),
+        aggregateLookup(MongoCollections.USER, 'createdBy', '_id', 'createdBy'),
+        aggregateLookup(MongoCollections.USER, 'updatedBy', '_id', 'updatedBy'),
+        {
+          $project: {
+            ...projectCreatedAndUpdated(),
+            _id: 1,
+            type: 1,
+            name: 1,
+            description: 1,
+            settings: 1,
+            notifications: 1,
+            schedule: 1,
+            namespace: 1,
+          },
+        },
+      ])
       .toArray();
 
     return alarms.map((alarm) =>
@@ -45,10 +91,7 @@ export class MongoAlarmRepository implements AlarmRepository {
     options: MongoFilterNamespaceOptionsType,
   ): Promise<number> {
     const collection = await this.alarmModel;
-    return collection.countDocuments({
-      ...query,
-      namespace: options.namespace,
-    });
+    return collection.countDocuments(this.buildMatchQuery(query, options));
   }
 
   async findAlarm(
@@ -74,8 +117,7 @@ export class MongoAlarmRepository implements AlarmRepository {
     const alarm = {
       _id: new ObjectId(),
       ...payload,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      ...saveCreatedAtAndUpdatedAt(payload.createdBy),
     };
 
     const result = await collection.insertOne(alarm);
@@ -97,8 +139,7 @@ export class MongoAlarmRepository implements AlarmRepository {
       {
         $set: {
           ...payload,
-          updatedBy: options.key,
-          updatedAt: new Date(),
+          ...saveUpdatedAt(options.key),
         },
       },
     );

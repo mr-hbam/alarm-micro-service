@@ -1,42 +1,31 @@
 import { AutoMap } from '@automapper/classes';
 import { ObjectId } from 'mongodb';
+import { MongoCreateAtUpdateAt } from '../../../../../common/mappings/mapper';
 
-export class MongoAlarmItem {
+export class MongoAlarmItem extends MongoCreateAtUpdateAt {
   @AutoMap()
-  _id: ObjectId;
-
-  @AutoMap()
-  type: string;
+  _id!: ObjectId;
 
   @AutoMap()
-  name: string;
+  type!: string;
+
+  @AutoMap()
+  name!: string;
 
   @AutoMap()
   description?: string;
 
   @AutoMap()
-  settings: Record<string, any>;
+  settings!: Record<string, any>;
 
   @AutoMap()
-  notifications: Record<string, any>;
+  notifications!: Record<string, any>;
 
   @AutoMap()
-  schedule: Record<string, any>;
+  schedule!: Record<string, any>;
 
   @AutoMap()
-  namespace: string;
-
-  @AutoMap()
-  createdBy: string;
-
-  @AutoMap()
-  updatedBy: string;
-
-  @AutoMap()
-  createdAt: Date;
-
-  @AutoMap()
-  updatedAt: Date;
+  namespace!: string;
 }
 
 export class MongoAlarmTypeItem {

@@ -26,7 +26,6 @@ export class UpdateAlarmUseCase {
         }
         this.validateGeofenceSettings(settings);
         break;
-      // Add other validation cases...
     }
   }
 
@@ -70,16 +69,19 @@ export class UpdateAlarmUseCase {
       );
     }
 
-    if (notifications.recipients) {
-      this.validateRecipients(notifications.recipients);
+    if (notifications.email) {
+      this.validateEmailRecipients(notifications.email);
+    }
+
+    if (notifications.sms) {
+      this.validateSmsRecipients(notifications.sms);
     }
   }
 
-  private validateRecipients(recipients: any): void {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (recipients.email?.length > 0) {
-      recipients.email.forEach((recipient: any) => {
+  private validateEmailRecipients(recipients?: any[]): void {
+    if (recipients?.length > 0) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      recipients.forEach((recipient: any) => {
         if (recipient.value && !emailRegex.test(recipient.value.trim())) {
           throw new InvalidAlarmDataException(
             `Invalid email format: ${recipient.value}`,
@@ -87,9 +89,11 @@ export class UpdateAlarmUseCase {
         }
       });
     }
+  }
 
-    if (recipients.sms?.length > 0) {
-      recipients.sms.forEach((recipient: any) => {
+  private validateSmsRecipients(recipients?: any[]): void {
+    if (recipients?.length > 0) {
+      recipients.forEach((recipient: any) => {
         if (recipient.value && !/^\d+$/.test(recipient.value.trim())) {
           throw new InvalidAlarmDataException(
             `Invalid phone number format: ${recipient.value}`,

@@ -1,16 +1,15 @@
 import { createMap, extend, forMember, mapFrom } from '@automapper/core';
-import { MongoAlarmItem } from './type';
-import { AlarmEntity } from '../../../../../core/alarm/entities/alarm.entity';
 import {
   mapper,
   MongoCreateAtUpdateAtMapper,
 } from '../../../../../common/mappings/mapper';
+import { MongoAlarmItem } from './type';
+import { AlarmEntity } from '../../../../../core/alarm/entities/alarm.entity';
 
 export const initAlarmMapper = () => {
-  mongoAlarmToAlarmEntity();
+  MongoFetchAlarmItemToFetchAlarmItemResponse();
 };
-
-const mongoAlarmToAlarmEntity = () =>
+const MongoFetchAlarmItemToFetchAlarmItemResponse = () => {
   createMap(
     mapper,
     MongoAlarmItem,
@@ -49,3 +48,4 @@ const mongoAlarmToAlarmEntity = () =>
     ),
     extend(MongoCreateAtUpdateAtMapper),
   );
+};

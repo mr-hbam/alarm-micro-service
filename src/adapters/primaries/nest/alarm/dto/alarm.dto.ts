@@ -61,9 +61,17 @@ export class NotificationsDto {
   @Type(() => NotificationTextDto)
   text: NotificationTextDto;
 
-  @ValidateNested()
-  @Type(() => RecipientsDto)
-  recipients: RecipientsDto;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => RecipientDto)
+  @IsOptional()
+  email?: RecipientDto[];
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => RecipientDto)
+  @IsOptional()
+  sms?: RecipientDto[];
 
   @IsBoolean()
   emergency: boolean;
@@ -73,10 +81,6 @@ export class NotificationsDto {
 }
 
 export class ScheduleDto {
-  @IsString()
-  @IsNotEmpty()
-  template: string;
-
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => TimeIntervalDto)

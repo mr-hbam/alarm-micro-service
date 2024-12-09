@@ -34,7 +34,6 @@ export class CreateAlarmUseCase {
         }
         this.validateGeofenceSettings(settings);
         break;
-      // Add other alarm type validations...
     }
   }
 
@@ -63,13 +62,14 @@ export class CreateAlarmUseCase {
       );
     }
 
-    this.validateRecipients(notifications.recipients);
+    this.validateEmailRecipients(notifications.email);
+    this.validateSmsRecipients(notifications.sms);
   }
 
-  private validateRecipients(recipients: any): void {
-    if (recipients?.email?.length > 0) {
+  private validateEmailRecipients(recipients?: any[]): void {
+    if (recipients?.length > 0) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      recipients.email.forEach((recipient: any) => {
+      recipients.forEach((recipient: any) => {
         if (recipient.value && !emailRegex.test(recipient.value.trim())) {
           throw new InvalidAlarmDataException(
             `Invalid email format: ${recipient.value}`,
@@ -77,9 +77,11 @@ export class CreateAlarmUseCase {
         }
       });
     }
+  }
 
-    if (recipients?.sms?.length > 0) {
-      recipients.sms.forEach((recipient: any) => {
+  private validateSmsRecipients(recipients?: any[]): void {
+    if (recipients?.length > 0) {
+      recipients.forEach((recipient: any) => {
         if (recipient.value && !/^\d+$/.test(recipient.value.trim())) {
           throw new InvalidAlarmDataException(
             `Invalid phone number format: ${recipient.value}`,
@@ -90,10 +92,6 @@ export class CreateAlarmUseCase {
   }
 
   private validateSchedule(schedule: any): void {
-    if (!schedule?.template) {
-      throw new InvalidAlarmDataException('Schedule template is required');
-    }
-
     if (!Array.isArray(schedule.intervals) || schedule.intervals.length === 0) {
       throw new InvalidAlarmDataException(
         'Schedule must contain at least one interval',

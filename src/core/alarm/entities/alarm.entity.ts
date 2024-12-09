@@ -1,38 +1,41 @@
 import { AutoMap } from '@automapper/classes';
-import { AlarmTypeValue } from '../type/type.enum';
 import { CreateAtUpdateAt } from '../../common/repository/global.repository';
+import { AlarmTypeValue } from '../type/type.enum';
 
 export class AlarmEntity extends CreateAtUpdateAt {
   @AutoMap()
-  key: string;
+  key!: string;
 
   @AutoMap()
-  namespace: string;
+  namespace!: string;
 
   @AutoMap()
-  type: AlarmTypeValue;
+  type!: AlarmTypeValue;
 
   @AutoMap()
-  name: string;
+  name!: string;
 
   @AutoMap()
   description?: string;
 
   @AutoMap()
-  settings: Record<string, any>;
+  settings!: Record<string, any>;
 
   @AutoMap()
-  notifications: Record<string, any>;
+  notifications!: Record<string, any>;
 
   @AutoMap()
-  schedule: Record<string, any>;
+  schedule!: Record<string, any>;
 
   @AutoMap()
-  createdBy?: { key: string; name: string };
+  createdBy!: { key: string; name: string };
 
   @AutoMap()
-  updatedBy?: { key: string; name: string };
+  updatedBy!: { key: string; name: string };
 
   @AutoMap()
-  updatedAt: Date;
+  createdAt!: Date;
+
+  @AutoMap()
+  updatedAt!: Date;
 }
